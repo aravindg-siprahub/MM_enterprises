@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../Downloads/claude 1"
+		}
+	],
+	"settings": {
+		"css.lint.unknownAtRules": "ignore"
+	}
+}
