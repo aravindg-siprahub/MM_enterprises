@@ -42,21 +42,30 @@ export default function AuthModal() {
         console.log('[DEBUG] AuthModal login successful. Redirecting to #chat...');
       } else {
         console.log('[DEBUG] AuthModal attempting signup...');
-        const { data, error } = await supabase.auth.signUp({
+        const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${API}/api/chat/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: fullName
+          })
+        });
+        
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Failed to create account');
+        }
+
+        // Now that the backend created and confirmed the user, log them in instantly
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName,
-            }
-          }
         });
-        if (error) throw error;
         
-        if (!data.session) {
-          console.log('[DEBUG] AuthModal signup successful but no session returned (Email Confirmation enabled)');
-          throw new Error("Configuration Warning: 'Enable Email Confirmations' is enabled in your Supabase Dashboard. Please disable it in Authentication -> Providers -> Email for instant signup.");
-        }
+        if (signInError) throw signInError;
+        
         console.log('[DEBUG] AuthModal signup successful. Redirecting to #chat...');
       }
       

@@ -23,6 +23,11 @@ class RegisterRequest(BaseModel):
     full_name: str
     invite_code: str
 
+class ChatRegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+
 
 @router.post("/admin/login")
 def login(creds: LoginRequest, db: tuple = Depends(get_db)):
@@ -152,6 +157,34 @@ def register_admin(data: RegisterRequest, db: tuple = Depends(get_db)):
             }
         }
 
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration error: {str(e)}")
+
+
+@router.post("/chat/register")
+def register_chat_user(data: ChatRegisterRequest, db: tuple = Depends(get_db)):
+    conn, cursor = db
+    try:
+        # Check if email already exists
+        cursor.execute("SELECT id FROM auth.users WHERE email = %s", (data.email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="User already exists")
+            
+        hashed_password = pwd_context.hash(data.password)
+        new_id = str(uuid.uuid4())
+        
+        cursor.execute(
+            """
+            INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, aud, role)
+            VALUES (%s, %s, %s, NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}', %s, 'authenticated', 'authenticated')
+            """,
+            (new_id, data.email, hashed_password, f'{{"full_name":"{data.full_name}"}}')
+        )
+        conn.commit()
+        return {"status": "success", "message": "User created successfully"}
     except Exception as e:
         if isinstance(e, HTTPException):
             raise
