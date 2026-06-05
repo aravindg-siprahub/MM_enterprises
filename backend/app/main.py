@@ -17,12 +17,15 @@ from app.routers.admin import (
 
 app = FastAPI(title="MM Enterprises Digital Commerce API")
 
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://mm-enterprises-git-main-aravindg-siprahubs-projects.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://mm-enterprises-pearl.vercel.app"
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
