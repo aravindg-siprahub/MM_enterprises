@@ -6,9 +6,16 @@ from app.auth import create_access_token
 from app.config import settings
 from datetime import timedelta
 import uuid
+import os
+from supabase import create_client, Client
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Initialize Supabase client for admin operations
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase_admin: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # Secret invite code sourced from settings (set ADMIN_INVITE_CODE in .env to override)
 ADMIN_INVITE_CODE = settings.ADMIN_INVITE_CODE
@@ -166,39 +173,41 @@ def register_admin(data: RegisterRequest, db: tuple = Depends(get_db)):
 
 @router.post("/chat/register")
 def register_chat_user(data: ChatRegisterRequest, db: tuple = Depends(get_db)):
-    conn, cursor = db
-    try:
-        # Check if email already exists
-        cursor.execute("SELECT id FROM auth.users WHERE email = %s", (data.email,))
-        existing_user = cursor.fetchone()
-            
-        hashed_password = pwd_context.hash(data.password)
+    if not supabase_admin:
+        raise HTTPException(status_code=500, detail="Supabase Admin client not configured")
         
-        if existing_user:
-            # If user exists (likely stuck in unconfirmed state from before), confirm them and update password
-            cursor.execute(
-                """
-                UPDATE auth.users 
-                SET encrypted_password = %s, email_confirmed_at = COALESCE(email_confirmed_at, NOW()), updated_at = NOW()
-                WHERE id = %s
-                """,
-                (hashed_password, existing_user['id'])
-            )
-            conn.commit()
-            return {"status": "success", "message": "User updated successfully"}
-        else:
-            new_id = str(uuid.uuid4())
-            cursor.execute(
-                """
-                INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, aud, role)
-                VALUES (%s, %s, %s, NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}', %s, 'authenticated', 'authenticated')
-                """,
-                (new_id, data.email, hashed_password, f'{{"full_name":"{data.full_name}"}}')
-            )
-            conn.commit()
-            return {"status": "success", "message": "User created successfully"}
+    try:
+        # Use Supabase Admin API to create user correctly (handles auth.identities, formats bcrypt correctly, etc.)
+        # This bypassed rate-limits and email verification safely if email_confirm is True
+        user_response = supabase_admin.auth.admin.create_user({
+            "email": data.email,
+            "password": data.password,
+            "user_metadata": {"full_name": data.full_name},
+            "email_confirm": True
+        })
+        
+        return {"status": "success", "message": "User created successfully"}
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
-        conn.rollback()
+        # If user already exists, Supabase raises an error. We can catch it.
+        error_msg = str(e).lower()
+        if "already registered" in error_msg or "already exists" in error_msg:
+            try:
+                # If they already exist, try to update their password and confirm them so they aren't stuck
+                # First we need to get their user ID
+                # Actually, admin.update_user_by_id requires the user_id. We can query it via auth.users since we have db access
+                conn, cursor = db
+                cursor.execute("SELECT id FROM auth.users WHERE email = %s", (data.email,))
+                existing_user = cursor.fetchone()
+                
+                if existing_user:
+                    supabase_admin.auth.admin.update_user_by_id(
+                        existing_user['id'],
+                        {"password": data.password, "email_confirm": True}
+                    )
+                    return {"status": "success", "message": "User updated successfully"}
+                else:
+                    raise HTTPException(status_code=400, detail="User already exists but could not be updated.")
+            except Exception as inner_e:
+                raise HTTPException(status_code=500, detail=f"Failed to update existing user: {str(inner_e)}")
+        
         raise HTTPException(status_code=500, detail=f"Registration error: {str(e)}")
