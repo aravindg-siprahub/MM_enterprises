@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import NotificationBell from '@/components/ui/NotificationBell';
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -108,6 +109,7 @@ export default function Navbar() {
             {link.label}
           </Link>
         ))}
+        <NotificationBell />
         <Link href="/#contact" className="btn-gold" style={{ padding: "10px 20px", fontSize: "0.8rem" }}>
           Get Quote
         </Link>

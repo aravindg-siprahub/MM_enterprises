@@ -52,15 +52,46 @@ function FilterContent({
   toggleBrand,
   selectedPrices,
   togglePrice,
+  selectedDiscounts,
+  toggleDiscount,
+  sortBy,
+  setSortBy
 }: {
   brands: string[];
   selectedBrands: string[];
   toggleBrand: (b: string) => void;
   selectedPrices: string[];
   togglePrice: (p: string) => void;
+  selectedDiscounts: string[];
+  toggleDiscount: (d: string) => void;
+  sortBy: string;
+  setSortBy: (s: string) => void;
 }) {
   return (
     <div className="space-y-0">
+      {/* Sort By - Mobile Only */}
+      <div className="border-b border-gray-100 pb-4 mb-0 p-4 lg:hidden">
+        <h4 className="font-medium text-xs uppercase tracking-wider text-gray-500 mb-3">
+          Sort By
+        </h4>
+        <div className="space-y-2.5">
+          {SORT_OPTIONS.map((s) => (
+            <label key={s.key} className="flex items-center gap-2.5 cursor-pointer group">
+              <input
+                type="radio"
+                name="mobile_sort"
+                checked={sortBy === s.key}
+                onChange={() => setSortBy(s.key)}
+                className="w-4 h-4 accent-[#2874f0] cursor-pointer"
+              />
+              <span className="text-sm text-[#212121] group-hover:text-[#2874f0]">
+                {s.label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Price Range */}
       <div className="border-b border-gray-100 pb-4 mb-0 p-4">
         <h4 className="font-medium text-xs uppercase tracking-wider text-gray-500 mb-3">
@@ -73,7 +104,7 @@ function FilterContent({
                 type="checkbox"
                 checked={selectedPrices.includes(r.label)}
                 onChange={() => togglePrice(r.label)}
-                className="w-4 h-4 accent-[#2874f0] rounded"
+                className="w-4 h-4 accent-[#2874f0] rounded cursor-pointer"
               />
               <span className="text-sm text-[#212121] group-hover:text-[#2874f0]">
                 {r.label}
@@ -96,7 +127,7 @@ function FilterContent({
                   type="checkbox"
                   checked={selectedBrands.includes(brand)}
                   onChange={() => toggleBrand(brand)}
-                  className="w-4 h-4 accent-[#2874f0] rounded"
+                  className="w-4 h-4 accent-[#2874f0] rounded cursor-pointer"
                 />
                 <span className="text-sm text-[#212121] group-hover:text-[#2874f0]">
                   {brand}
@@ -115,7 +146,12 @@ function FilterContent({
         <div className="space-y-2.5">
           {DISCOUNT_OPTIONS.map((d) => (
             <label key={d} className="flex items-center gap-2.5 cursor-pointer group">
-              <input type="checkbox" className="w-4 h-4 accent-[#2874f0] rounded" />
+              <input 
+                type="checkbox" 
+                checked={selectedDiscounts.includes(d)}
+                onChange={() => toggleDiscount(d)}
+                className="w-4 h-4 accent-[#2874f0] rounded cursor-pointer" 
+              />
               <span className="text-sm text-[#212121] group-hover:text-[#2874f0]">{d}</span>
             </label>
           ))}
@@ -131,6 +167,7 @@ export default function CategoryPage({ categorySlug, title }: Props) {
   const [brands, setBrands]               = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
+  const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
   const [sortBy, setSortBy]               = useState("relevance");
   const [page, setPage]                   = useState(1);
   const [total, setTotal]                 = useState(0);
@@ -140,6 +177,14 @@ export default function CategoryPage({ categorySlug, title }: Props) {
   const [drawerOpen, setDrawerOpen]       = useState(false);
 
   const displayTitle = title || categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
+
+  /* ── Fetch brands once for this category ─────────────── */
+  useEffect(() => {
+    fetch(`${API_BASE}/api/brands?category=${categorySlug}`)
+      .then(res => res.json())
+      .then(data => setBrands(data.map((b: any) => b.name)))
+      .catch(console.error);
+  }, [categorySlug]);
 
   /* ── Fetch products ────────────────────────────────────── */
   const fetchProducts = useCallback(
@@ -153,8 +198,26 @@ export default function CategoryPage({ categorySlug, title }: Props) {
           page: String(pg),
           limit: String(PAGE_SIZE),
           ...(sortBy !== "relevance" && { sort: sortBy }),
-          ...(selectedBrands.length > 0 && { brand: selectedBrands[0] }), // API supports one brand
         });
+
+        if (selectedBrands.length > 0) {
+          params.append('brand', selectedBrands.join(','));
+        }
+
+        if (selectedPrices.length > 0) {
+          const selectedRanges = PRICE_RANGES.filter(r => selectedPrices.includes(r.label));
+          if (selectedRanges.length > 0) {
+            const min_price = Math.min(...selectedRanges.map(r => r.min));
+            const max_price = Math.max(...selectedRanges.map(r => r.max));
+            params.append('min_price', String(min_price));
+            params.append('max_price', String(max_price));
+          }
+        }
+
+        if (selectedDiscounts.length > 0) {
+          const min_discount = Math.min(...selectedDiscounts.map(d => parseInt(d)));
+          params.append('min_discount', String(min_discount));
+        }
 
         const res = await fetch(`${API_BASE}/api/products?${params}`);
         if (!res.ok) throw new Error("Failed");
@@ -167,11 +230,6 @@ export default function CategoryPage({ categorySlug, title }: Props) {
           setProducts((prev) => [...prev, ...list]);
         } else {
           setProducts(list);
-          // Build brand list from fresh results
-          const uniqueBrands = [
-            ...new Set(list.map((p: any) => p.brands?.name || p.brand?.name).filter(Boolean)),
-          ] as string[];
-          setBrands(uniqueBrands);
         }
 
         setTotal(serverTotal);
@@ -184,7 +242,7 @@ export default function CategoryPage({ categorySlug, title }: Props) {
         setLoadingMore(false);
       }
     },
-    [categorySlug, sortBy, selectedBrands]
+    [categorySlug, sortBy, selectedBrands, selectedPrices, selectedDiscounts]
   );
 
   /* Reset + refetch when filters/sort change */
@@ -205,13 +263,20 @@ export default function CategoryPage({ categorySlug, title }: Props) {
     );
   };
 
+  const toggleDiscount = (d: string) => {
+    setSelectedDiscounts((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
+    );
+  };
+
   const loadMore = () => fetchProducts(page + 1, true);
 
-  const activeFilterCount = selectedBrands.length + selectedPrices.length;
+  const activeFilterCount = selectedBrands.length + selectedPrices.length + selectedDiscounts.length + (sortBy !== "relevance" ? 1 : 0);
 
   const clearAll = () => {
     setSelectedBrands([]);
     setSelectedPrices([]);
+    setSelectedDiscounts([]);
     setSortBy("relevance");
   };
 
@@ -240,6 +305,10 @@ export default function CategoryPage({ categorySlug, title }: Props) {
               toggleBrand={toggleBrand}
               selectedPrices={selectedPrices}
               togglePrice={togglePrice}
+              selectedDiscounts={selectedDiscounts}
+              toggleDiscount={toggleDiscount}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
             />
           </div>
         </aside>
@@ -248,36 +317,23 @@ export default function CategoryPage({ categorySlug, title }: Props) {
         <main className="flex-1 min-w-0">
 
           {/* Mobile: Filter + Sort bar */}
-          <div className="lg:hidden flex items-center gap-2 mb-3">
+          <div className="lg:hidden flex items-center justify-between bg-white px-3 py-2.5 rounded-sm shadow-sm mb-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-[#212121]">{displayTitle}</span>
+              <span className="text-[11px] text-gray-500">{total.toLocaleString("en-IN")} products</span>
+            </div>
             <button
               onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-1.5 bg-white text-sm font-medium border border-gray-200 rounded-sm px-3 py-2 shadow-sm text-[#212121] hover:border-[#2874f0] hover:text-[#2874f0] transition-colors"
+              className="flex items-center gap-1.5 bg-blue-50 text-[#2874f0] px-3 py-1.5 rounded-sm text-xs font-bold transition-colors hover:bg-blue-100"
             >
-              <SlidersHorizontal size={15} />
-              Filters
+              <SlidersHorizontal size={14} />
+              Filters & Sort
               {activeFilterCount > 0 && (
-                <span className="bg-[#2874f0] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                <span className="bg-[#2874f0] text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
             </button>
-            <div className="flex-1 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-1 w-max">
-                {SORT_OPTIONS.map((s) => (
-                  <button
-                    key={s.key}
-                    onClick={() => setSortBy(s.key)}
-                    className={`whitespace-nowrap text-xs px-3 py-2 border-b-2 transition-colors font-medium ${
-                      sortBy === s.key
-                        ? "border-[#2874f0] text-[#2874f0] bg-white"
-                        : "border-transparent text-[#212121] bg-white hover:text-[#2874f0]"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Sort bar — desktop */}
@@ -310,11 +366,19 @@ export default function CategoryPage({ categorySlug, title }: Props) {
           {/* Active filter chips */}
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
+              {sortBy !== "relevance" && (
+                <button
+                  onClick={() => setSortBy("relevance")}
+                  className="flex items-center gap-1 bg-blue-50 border border-blue-200 text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-100 transition-colors"
+                >
+                  {SORT_OPTIONS.find((s) => s.key === sortBy)?.label} <X size={11} />
+                </button>
+              )}
               {selectedBrands.map((b) => (
                 <button
                   key={b}
                   onClick={() => toggleBrand(b)}
-                  className="flex items-center gap-1 bg-white border border-[#2874f0] text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-50"
+                  className="flex items-center gap-1 bg-blue-50 border border-blue-200 text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-100 transition-colors"
                 >
                   {b} <X size={11} />
                 </button>
@@ -323,9 +387,18 @@ export default function CategoryPage({ categorySlug, title }: Props) {
                 <button
                   key={p}
                   onClick={() => togglePrice(p)}
-                  className="flex items-center gap-1 bg-white border border-[#2874f0] text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-50"
+                  className="flex items-center gap-1 bg-blue-50 border border-blue-200 text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-100 transition-colors"
                 >
                   {p} <X size={11} />
+                </button>
+              ))}
+              {selectedDiscounts.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => toggleDiscount(d)}
+                  className="flex items-center gap-1 bg-blue-50 border border-blue-200 text-[#2874f0] text-xs font-medium px-2.5 py-1 rounded-full shadow-sm hover:bg-blue-100 transition-colors"
+                >
+                  {d} <X size={11} />
                 </button>
               ))}
             </div>
@@ -399,7 +472,7 @@ export default function CategoryPage({ categorySlug, title }: Props) {
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-[#2874f0]" />
-            <h3 className="font-bold text-base text-[#212121]">Filters</h3>
+            <h3 className="font-bold text-base text-[#212121]">Filters & Sort</h3>
             {activeFilterCount > 0 && (
               <span className="bg-[#2874f0] text-white text-[10px] rounded-full px-2 py-0.5 font-bold">
                 {activeFilterCount}
@@ -421,6 +494,10 @@ export default function CategoryPage({ categorySlug, title }: Props) {
             toggleBrand={toggleBrand}
             selectedPrices={selectedPrices}
             togglePrice={togglePrice}
+            selectedDiscounts={selectedDiscounts}
+            toggleDiscount={toggleDiscount}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
           />
         </div>
 
@@ -435,7 +512,7 @@ export default function CategoryPage({ categorySlug, title }: Props) {
             onClick={() => setDrawerOpen(false)}
             className="flex-1 bg-[#2874f0] text-white font-bold py-2.5 rounded-sm text-sm hover:bg-blue-700"
           >
-            Apply Filters
+            Apply
           </button>
         </div>
       </div>

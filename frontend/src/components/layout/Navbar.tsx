@@ -1,17 +1,26 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, User, Heart, Menu } from 'lucide-react';
+import { Search, ShoppingBag, User, Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Assuming button gets added
 import SmartSearch from '@/components/ui/SmartSearch';
+import NotificationBell from '@/components/ui/NotificationBell';
 
 export default function Navbar() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <nav className="sticky top-0 z-50 w-full glass-nav">
+    <nav className="sticky top-0 z-50 w-full glass-nav bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         
         {/* Left: Mobile Menu & Logo */}
         <div className="flex items-center gap-4">
-          <button className="md:hidden p-2 text-foreground/80 hover:text-foreground">
-            <Menu className="w-6 h-6" />
+          <button 
+            className="md:hidden p-2 text-foreground/80 hover:text-foreground"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           
           <Link href="/" className="flex items-center gap-2">
@@ -35,7 +44,10 @@ export default function Navbar() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <button className="md:hidden p-2 text-foreground/80 hover:text-foreground">
+          <button 
+            className="md:hidden p-2 text-foreground/80 hover:text-foreground"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
             <Search className="w-5 h-5" />
           </button>
           
@@ -50,14 +62,64 @@ export default function Navbar() {
             </span>
           </Link>
 
+          <NotificationBell />
+
           <div className="hidden sm:block border-l h-6 mx-2 border-border"></div>
           
-          <Link href="/admin" className="hidden sm:flex items-center gap-2 p-2 text-foreground/80 hover:text-primary">
+          <Link href="/admin" className="flex items-center gap-2 p-2 text-foreground/80 hover:text-primary">
             <User className="w-5 h-5" />
-            <span className="text-sm font-medium">Account</span>
+            <span className="text-sm font-medium hidden sm:block">Account</span>
           </Link>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-16 left-0 w-full bg-background border-b border-border shadow-lg">
+          <div className="flex flex-col py-4 px-6 space-y-4">
+            <div className="w-full pb-2 mb-2 border-b border-border">
+              <SmartSearch />
+            </div>
+            <Link 
+              href="/mobiles" 
+              className="text-lg font-medium hover:text-primary"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Mobiles
+            </Link>
+            <Link 
+              href="/appliances" 
+              className="text-lg font-medium hover:text-primary"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Appliances
+            </Link>
+            <Link 
+              href="/furniture" 
+              className="text-lg font-medium hover:text-primary"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Furniture
+            </Link>
+            <div className="pt-4 mt-2 border-t border-border flex flex-col space-y-4">
+              <Link 
+                href="/wishlist" 
+                className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Heart className="w-5 h-5" /> Wishlist
+              </Link>
+              <Link 
+                href="/admin" 
+                className="flex items-center gap-3 text-lg font-medium hover:text-primary"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <User className="w-5 h-5" /> Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

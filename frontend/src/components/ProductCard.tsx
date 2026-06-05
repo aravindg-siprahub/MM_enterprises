@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -22,14 +22,21 @@ export interface Product {
   reviews_count?: number;
   discount_percentage?: number;
   discount_percent?: number;
+  deals?: any[];
 }
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop';
 
 export default function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const handleImgError = useCallback(() => setImgError(true), []);
 
   const displayTitle = product.title || product.name || 'Unknown Product';
-  const displayPrice = product.price || product.selling_price || 0;
+  const activeDeal = product.deals?.find((d: any) => d.is_active !== false);
+  const displayPrice = activeDeal?.deal_price || product.price || product.selling_price || 0;
   const displayOriginalPrice = product.original_price || 0;
   
   // Extract images correctly whether they are strings or objects, from `images` or `product_images`
@@ -39,14 +46,16 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
     extractedImages = rawImages.map((img: any) => typeof img === 'string' ? img : img.image_url).filter(Boolean);
   }
   
-  const displayImages = extractedImages.length > 0 ? extractedImages : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop'];
-  const primaryImage = displayImages[0];
-  const secondaryImage = displayImages[1] || primaryImage;
+  const displayImages = extractedImages.length > 0 ? extractedImages : [FALLBACK_IMAGE];
+  // Use the primary image only; fallback to FALLBACK_IMAGE if it errors
+  const primaryImage = imgError ? FALLBACK_IMAGE : (displayImages[0] || FALLBACK_IMAGE);
   
   const rating = product.rating || 4.5;
   const reviews = product.reviews_count || 124;
   
-  const discount = product.discount_percentage || product.discount_percent || (displayOriginalPrice ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) : 0);
+  const discount = activeDeal 
+    ? (displayOriginalPrice > 0 ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) : 0)
+    : (product.discount_percentage || product.discount_percent || (displayOriginalPrice > 0 ? Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100) : 0));
 
   return (
     <motion.div
@@ -105,12 +114,14 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
           className="relative w-full h-full p-1"
         >
           <Image
-            src={isHovered ? secondaryImage : primaryImage}
+            src={primaryImage}
             alt={displayTitle}
             fill
-            priority={index <= 4}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={index < 4}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain mix-blend-multiply transition-opacity duration-500"
+            onError={handleImgError}
+            unoptimized={primaryImage.includes('supabase.co')}
           />
         </motion.div>
       </Link>

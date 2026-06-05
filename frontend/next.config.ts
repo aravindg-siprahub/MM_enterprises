@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: true,
+    // Cache successfully optimized images for 24 hours — prevents re-hitting the optimizer on every request
+    minimumCacheTTL: 86400,
+    // Supabase Storage already serves WebP/AVIF via its own CDN, so we don't need Next.js to re-encode them.
+    // By skipping unrecognized formats, we avoid the Turbopack image-worker DATA_CLONE_ERR crash.
+    formats: ['image/webp'],
     remotePatterns: [
       { protocol: 'http', hostname: '127.0.0.1' },
       { protocol: 'http', hostname: 'localhost' },

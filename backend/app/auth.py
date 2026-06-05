@@ -39,3 +39,40 @@ def get_super_admin(admin: dict = Depends(get_current_admin)):
     if admin.get('role') != 'super_admin':
         raise HTTPException(status_code=403, detail="Super admin privileges required for this action")
     return admin
+
+def get_current_user(authorization: str = Header(None), db: tuple = Depends(get_db)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid token format")
+        
+    token = authorization.replace("Bearer ", "")
+    conn, cursor = db
+    
+    try:
+        from supabase import create_client
+        import os
+        
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+        
+        if not supabase_url or not supabase_key:
+            raise HTTPException(status_code=500, detail="Supabase configuration missing")
+            
+        supabase = create_client(supabase_url, supabase_key)
+        
+        # Securely verify the JWT token using Supabase Auth API
+        user_response = supabase.auth.get_user(token)
+        
+        if not user_response or not user_response.user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+        user_id = user_response.user.id
+            
+        cursor.execute("SELECT id, email, raw_user_meta_data FROM auth.users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found in database")
+            
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")

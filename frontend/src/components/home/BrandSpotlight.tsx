@@ -27,7 +27,7 @@ export default function BrandSpotlight({ brands }: { brands: any[] }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.05 }}
-            onClick={() => router.push(`/brands/${brand.slug}`)}
+            onClick={() => router.push(`/catalog?brand=${brand.slug}`)}
             className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-[#2563EB]/30 hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
           >
             <div className="w-16 h-12 sm:w-20 sm:h-14 flex items-center justify-center mb-3 relative">

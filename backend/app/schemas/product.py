@@ -17,6 +17,56 @@ class ProductImage(ProductImageBase):
     
     model_config = ConfigDict(from_attributes=True)
 
+class ProductVariantBase(BaseModel):
+    variant_type: str
+    variant_value: str
+    sku: Optional[str] = None
+    price_override: Optional[float] = None
+    stock_quantity: int = 0
+    image_url: Optional[str] = None
+    is_default: bool = False
+    is_active: bool = True
+
+class ProductVariantCreate(ProductVariantBase):
+    product_id: str
+
+class ProductVariantUpdate(BaseModel):
+    variant_type: Optional[str] = None
+    variant_value: Optional[str] = None
+    sku: Optional[str] = None
+    price_override: Optional[float] = None
+    stock_quantity: Optional[int] = None
+    image_url: Optional[str] = None
+    is_default: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+class ProductVariant(ProductVariantBase):
+    id: str
+    product_id: str
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductAttributeBase(BaseModel):
+    attribute_name: str
+    attribute_value: str
+
+class ProductAttributeCreate(ProductAttributeBase):
+    product_id: str
+
+class ProductAttributeUpdate(BaseModel):
+    attribute_name: Optional[str] = None
+    attribute_value: Optional[str] = None
+
+class ProductAttribute(ProductAttributeBase):
+    id: str
+    product_id: str
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class ProductBase(BaseModel):
     name: str
     slug: str
@@ -34,6 +84,8 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     images: Optional[List[ProductImageBase]] = None
+    variants: Optional[List[ProductVariantBase]] = None
+    attributes: Optional[List[ProductAttributeBase]] = None
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -66,5 +118,7 @@ class Product(ProductBase):
     brands: Optional[dict] = None
     deals: Optional[list] = None
     reviews: Optional[list] = None
+    variants: Optional[list] = None
+    attributes: Optional[list] = None
     
     model_config = ConfigDict(from_attributes=True)

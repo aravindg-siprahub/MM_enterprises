@@ -66,7 +66,7 @@ export default function HeroCarousel({ banners = fallbackBanners }: { banners?: 
         {displayBanners.map((banner, index) => (
           <SwiperSlide key={index} className="relative w-full h-full">
             {({ isActive }) => (
-              <>
+              <Link href={banner.cta_link || banner.link_url || banner.link || '#'} className="block relative w-full h-full cursor-pointer group/slide">
                 <div className="absolute inset-0 bg-black/20 z-10 backdrop-blur-[1px]"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>
                 <Image
@@ -74,7 +74,7 @@ export default function HeroCarousel({ banners = fallbackBanners }: { banners?: 
                   alt={banner.title || 'Banner'}
                   fill
                   sizes="100vw"
-                  className="object-cover transition-transform duration-[10000ms] ease-linear scale-100 transform-gpu"
+                  className="object-cover transition-transform duration-[10000ms] ease-linear scale-100 transform-gpu group-hover/slide:scale-105"
                   style={{ transform: isActive ? 'scale(1.1)' : 'scale(1)' }}
                   priority={true}
                 />
@@ -106,16 +106,15 @@ export default function HeroCarousel({ banners = fallbackBanners }: { banners?: 
                       animate={isActive ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
                       transition={{ duration: 0.8, delay: 0.6 }}
                     >
-                      <Link 
-                        href={banner.link || '#'} 
+                      <span 
                         className="inline-flex items-center gap-2 bg-white text-gray-900 px-5 py-2.5 md:px-8 md:py-3.5 rounded-full font-bold text-sm md:text-base hover:scale-105 hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl"
                       >
                         Explore Deals <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                      </Link>
+                      </span>
                     </motion.div>
                   </div>
                 </div>
-              </>
+              </Link>
             )}
           </SwiperSlide>
         ))}

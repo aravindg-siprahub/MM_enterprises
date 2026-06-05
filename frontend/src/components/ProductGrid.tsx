@@ -35,7 +35,8 @@ export default async function ProductGrid({
       // Fetch data from FastAPI backend
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (res.ok) {
-        products = await res.json();
+        const jsonRes = await res.json();
+        products = Array.isArray(jsonRes) ? jsonRes : (jsonRes.data || []);
       }
     } catch (error) {
       console.error("Error fetching products:", error);

@@ -14,6 +14,9 @@ def get_products(
     brand: Optional[str] = None, 
     search: Optional[str] = None,
     sort: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    min_discount: Optional[int] = None,
     page: int = Query(1, ge=1),
     limit: int = Query(24, ge=1, le=100),
     db: tuple = Depends(get_db)
@@ -32,11 +35,23 @@ def get_products(
         base_query += " AND c.slug = %s"
         params.append(category)
     if brand:
-        base_query += " AND b.slug = %s"
-        params.append(brand)
+        brands = [b.strip() for b in brand.split(",")]
+        placeholders = ", ".join(["%s"] * len(brands))
+        base_query += f" AND (b.name IN ({placeholders}) OR b.slug IN ({placeholders}))"
+        params.extend(brands)
+        params.extend(brands)
     if search:
         base_query += " AND p.name ILIKE %s"
         params.append(f"%{search}%")
+    if min_price is not None:
+        base_query += " AND p.selling_price >= %s"
+        params.append(min_price)
+    if max_price is not None:
+        base_query += " AND p.selling_price <= %s"
+        params.append(max_price)
+    if min_discount is not None:
+        base_query += " AND p.discount_percent >= %s"
+        params.append(min_discount)
         
     # Count total
     cursor.execute(f"SELECT COUNT(*) as total {base_query}", tuple(params))
@@ -61,7 +76,8 @@ def get_products(
         SELECT p.*,
             (SELECT json_agg(json_build_object('id', pi.id, 'product_id', pi.product_id, 'image_url', pi.image_url, 'is_primary', pi.is_primary, 'sort_order', pi.sort_order, 'alt_text', pi.alt_text)) FROM product_images pi WHERE pi.product_id = p.id) as images,
             json_build_object('id', c.id, 'name', c.name, 'slug', c.slug) as category,
-            json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brand
+            json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brand,
+            (SELECT json_agg(json_build_object('deal_type', d.deal_type, 'deal_price', d.deal_price, 'is_active', d.is_active)) FROM deals d WHERE d.product_id = p.id AND d.is_active = true) as deals
         {base_query}
         {order_clause}
         LIMIT %s OFFSET %s
@@ -83,6 +99,8 @@ def get_product(slug: str, db: tuple = Depends(get_db)):
     query = """
         SELECT p.*,
             (SELECT json_agg(json_build_object('id', pi.id, 'product_id', pi.product_id, 'image_url', pi.image_url, 'is_primary', pi.is_primary, 'sort_order', pi.sort_order, 'alt_text', pi.alt_text) ORDER BY pi.sort_order) FROM product_images pi WHERE pi.product_id = p.id) as product_images,
+            (SELECT json_agg(json_build_object('id', pv.id, 'product_id', pv.product_id, 'variant_type', pv.variant_type, 'variant_value', pv.variant_value, 'sku', pv.sku, 'price_override', pv.price_override, 'stock_quantity', pv.stock_quantity, 'image_url', pv.image_url, 'is_default', pv.is_default, 'is_active', pv.is_active, 'created_at', pv.created_at, 'updated_at', pv.updated_at)) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) as variants,
+            (SELECT json_agg(json_build_object('id', pa.id, 'product_id', pa.product_id, 'attribute_name', pa.attribute_name, 'attribute_value', pa.attribute_value, 'created_at', pa.created_at, 'updated_at', pa.updated_at)) FROM product_attributes pa WHERE pa.product_id = p.id) as attributes,
             json_build_object('id', c.id, 'name', c.name, 'slug', c.slug) as categories,
             json_build_object('id', b.id, 'name', b.name, 'slug', b.slug, 'logo_url', b.logo_url) as brands,
             (SELECT json_agg(json_build_object('deal_type', d.deal_type, 'deal_price', d.deal_price, 'ends_at', d.ends_at, 'is_active', d.is_active)) FROM deals d WHERE d.product_id = p.id) as deals,
@@ -111,7 +129,8 @@ def get_similar_products(slug: str, db: tuple = Depends(get_db)):
     query = """
         SELECT p.*,
             (SELECT json_agg(json_build_object('image_url', pi.image_url, 'is_primary', pi.is_primary, 'sort_order', pi.sort_order) ORDER BY pi.sort_order) FROM product_images pi WHERE pi.product_id = p.id) as product_images,
-            json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brands
+            json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brands,
+            (SELECT json_agg(json_build_object('deal_type', d.deal_type, 'deal_price', d.deal_price, 'is_active', d.is_active)) FROM deals d WHERE d.product_id = p.id AND d.is_active = true) as deals
         FROM products p
         LEFT JOIN brands b ON p.brand_id = b.id
         WHERE p.category_id = %s AND p.id != %s AND p.is_active = true
@@ -177,7 +196,8 @@ def get_ai_recommendations(slug: str, db: tuple = Depends(get_db)):
         query = f"""
             SELECT p.*,
                 (SELECT json_agg(json_build_object('image_url', pi.image_url, 'is_primary', pi.is_primary, 'sort_order', pi.sort_order) ORDER BY pi.sort_order) FROM product_images pi WHERE pi.product_id = p.id) as product_images,
-                json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brands
+                json_build_object('id', b.id, 'name', b.name, 'slug', b.slug) as brands,
+                (SELECT json_agg(json_build_object('deal_type', d.deal_type, 'deal_price', d.deal_price, 'is_active', d.is_active)) FROM deals d WHERE d.product_id = p.id AND d.is_active = true) as deals
             FROM products p
             LEFT JOIN brands b ON p.brand_id = b.id
             WHERE p.slug IN ({format_strings}) AND p.is_active = true

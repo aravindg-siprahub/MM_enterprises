@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/imageUtils';
 import { ShoppingCart, Zap, Star, ShieldCheck, Truck, RotateCcw, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import ProductCard from './ProductCard';
 
@@ -12,9 +13,15 @@ interface Props {
 }
 
 export default function ProductDetailClient({ product, similar }: Props) {
-  const images: any[] = (product.product_images ?? product.images ?? [])
+  const rawImages: any[] = (product.product_images ?? product.images ?? [])
     .slice()
     .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+  // Resolve relative Supabase paths to full URLs (handles both stored paths and external URLs)
+  const images: any[] = rawImages.map((img: any) => ({
+    ...img,
+    image_url: getImageUrl(img.image_url, 'products'),
+  }));
 
   const primaryIdx = images.findIndex((img: any) => img.is_primary);
   const [activeIdx, setActiveIdx] = useState(primaryIdx >= 0 ? primaryIdx : 0);

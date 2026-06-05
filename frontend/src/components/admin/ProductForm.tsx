@@ -7,6 +7,9 @@ import * as z from "zod";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import ImageUploader from "./ImageUploader";
+import ProductVariants from "./ProductVariants";
+import ProductAttributes from "./ProductAttributes";
+import { revalidateProduct } from "@/app/actions/revalidate";
 import { Category, Brand, Product } from "@/lib/types";
 import { Sparkles, Loader2 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
@@ -49,6 +52,9 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
     })) || []
   );
 
+  const [variants, setVariants] = useState<any[]>(initialData?.variants || []);
+  const [attributes, setAttributes] = useState<any[]>(initialData?.attributes || []);
+
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -81,7 +87,15 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
         image_url: img.path || img.url, // Prioritize path over url
         is_primary: img.is_primary,
         sort_order: idx
-      }))
+      })),
+      variants: initialData ? undefined : variants.map(v => {
+        const { id, product_id, created_at, updated_at, ...rest } = v;
+        return rest;
+      }),
+      attributes: initialData ? undefined : attributes.map(a => {
+        const { id, product_id, created_at, updated_at, ...rest } = a;
+        return rest;
+      })
     };
 
 
@@ -105,6 +119,8 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
         const err = await res.json();
         throw new Error(err.detail || "Failed to save product");
       }
+
+      await revalidateProduct(payload.slug);
 
       toast.success(`Product ${initialData ? "updated" : "created"} successfully`);
       router.push("/admin/products");
@@ -269,6 +285,17 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
             <h3 className="font-semibold text-lg border-b pb-2">Images</h3>
             <ImageUploader images={images} onChange={setImages} bucket="products" />
           </div>
+
+          <ProductVariants 
+            productId={initialData?.id} 
+            initialVariants={variants} 
+            onChange={setVariants} 
+          />
+          <ProductAttributes 
+            productId={initialData?.id} 
+            initialAttributes={attributes} 
+            onChange={setAttributes} 
+          />
         </div>
 
         {/* Right Column - Pricing & Metadata */}

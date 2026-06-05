@@ -3,8 +3,8 @@
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import BottomNav from "@/components/layout/BottomNav";
 import CategoryPills from "@/components/home/CategoryPills";
+import AuthModal from "@/components/ui/AuthModal";
 
 export default function StoreShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -19,9 +19,9 @@ export default function StoreShell({ children }: { children: React.ReactNode }) 
     <>
       <Navbar />
       <CategoryPills />
-      <main className="flex-grow pb-28 md:pb-0">{children}</main>
+      <main className="flex-grow">{children}</main>
       <Footer />
-      <BottomNav />
+      <AuthModal />
     </>
   );
 }

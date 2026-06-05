@@ -5,6 +5,7 @@ import { Deal } from "@/lib/types";
 import DataTable from "@/components/admin/DataTable";
 import toast from "react-hot-toast";
 import { API_BASE_URL } from "@/lib/config";
+import { revalidateAll } from "@/app/actions/revalidate";
 
 export default function AdminDealsPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -24,6 +25,7 @@ export default function AdminDealsPage() {
     try {
       const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/admin/deals`, {
+        cache: "no-store",
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -41,6 +43,7 @@ export default function AdminDealsPage() {
     try {
       const token = getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/admin/products?limit=1000`, {
+        cache: "no-store",
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -73,6 +76,7 @@ export default function AdminDealsPage() {
       if (!res.ok) throw new Error("Failed to save deal");
       
       toast.success(isEditing ? "Deal updated" : "Deal added");
+      await revalidateAll(); // Clear site cache
       setCurrentDeal({ product_id: "", deal_type: "", deal_price: 0, is_active: true });
       setIsEditing(false);
       fetchDeals();
@@ -92,6 +96,7 @@ export default function AdminDealsPage() {
       });
       if (res.ok) {
         toast.success("Deal deleted", { id: toastId });
+        await revalidateAll(); // Clear site cache
         fetchDeals();
       } else {
         const errData = await res.json().catch(() => ({}));

@@ -6,7 +6,7 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/free-mode'
 import ProductCard, { Product } from '../ProductCard'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProductSliderProps {
@@ -21,16 +21,16 @@ export default function ProductSlider({ title, subtitle, products, viewAllLink }
 
   return (
     <div className="w-full py-8">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{title}</h2>
-          {subtitle && <p className="text-gray-500 mt-1">{subtitle}</p>}
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[#1d1d1f] tracking-tight">{title}</h2>
+          {subtitle && <p className="text-gray-500 mt-2 text-sm font-medium">{subtitle}</p>}
         </div>
         
         {viewAllLink && (
           <Link 
             href={viewAllLink}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[#2563EB] hover:text-[#1E40AF] transition-colors group"
+            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#0066cc] hover:text-[#0055aa] transition-colors group px-3 py-1.5 rounded-full bg-[#0066cc]/5 hover:bg-[#0066cc]/10"
           >
             View All 
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -64,11 +64,11 @@ export default function ProductSlider({ title, subtitle, products, viewAllLink }
         </Swiper>
         
         {/* Navigation buttons */}
-        <button className="swiper-button-prev-product absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center text-gray-800 shadow-lg border border-gray-100 opacity-0 group-hover/slider:opacity-100 transition-opacity hover:bg-gray-50 disabled:opacity-0">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+        <button className="swiper-button-prev-product absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center text-[#1d1d1f] shadow-md border border-gray-100 opacity-0 group-hover/slider:opacity-100 transition-all hover:bg-white hover:scale-105 disabled:opacity-0 cursor-pointer">
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
-        <button className="swiper-button-next-product absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center text-gray-800 shadow-lg border border-gray-100 opacity-0 group-hover/slider:opacity-100 transition-opacity hover:bg-gray-50 disabled:opacity-0">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+        <button className="swiper-button-next-product absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-11 sm:h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center text-[#1d1d1f] shadow-md border border-gray-100 opacity-0 group-hover/slider:opacity-100 transition-all hover:bg-white hover:scale-105 disabled:opacity-0 cursor-pointer">
+          <ArrowRight className="w-5 h-5 text-gray-700" />
         </button>
       </div>
     </div>

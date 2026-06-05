@@ -39,6 +39,8 @@ app.include_router(categories.router, prefix="/api", tags=["public"])
 app.include_router(brands.router, prefix="/api", tags=["public"])
 app.include_router(banners.router, prefix="/api", tags=["public"])
 
+from app.routers import chat
+
 # Admin API routes
 app.include_router(admin_products.router, prefix="/api/admin", tags=["admin"])
 app.include_router(admin_categories.router, prefix="/api/admin", tags=["admin"])
@@ -48,3 +50,4 @@ app.include_router(admin_deals.router, prefix="/api/admin", tags=["admin_deals"]
 app.include_router(admin_ai.router, prefix="/api/admin", tags=["admin_ai"])
 app.include_router(admin_upload.router, prefix="/api/admin", tags=["admin"])
 app.include_router(admin_stats.router, prefix="/api/admin", tags=["admin"])
+app.include_router(chat.router, prefix="/api")

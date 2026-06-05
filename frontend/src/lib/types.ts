@@ -27,6 +27,30 @@ export interface ProductImage {
   sort_order: number;
 }
 
+export interface ProductVariant {
+  id: string;
+  product_id: string;
+  variant_type: string;
+  variant_value: string;
+  sku: string | null;
+  price_override: number | null;
+  stock_quantity: number;
+  image_url: string | null;
+  is_default: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductAttribute {
+  id: string;
+  product_id: string;
+  attribute_name: string;
+  attribute_value: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -48,6 +72,8 @@ export interface Product {
   images: ProductImage[] | null;
   category: Category | null;
   brand: Brand | null;
+  variants?: ProductVariant[] | null;
+  attributes?: ProductAttribute[] | null;
 }
 
 export interface Banner {

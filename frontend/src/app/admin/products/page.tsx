@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
 import { getImageUrl } from "@/lib/imageUtils";
+import { revalidateAll } from "@/app/actions/revalidate";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,6 +60,7 @@ export default function AdminProductsPage() {
       if (res.ok) {
         toast.success("Product deleted", { id: toastId });
         setProducts(products.filter(p => p.id !== product.id));
+        await revalidateAll(); // Clear site cache
       } else {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.detail || "Failed to delete product");
@@ -83,6 +85,7 @@ export default function AdminProductsPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success(`Successfully applied '${action}' to ${data.count} products`);
+        await revalidateAll(); // Clear site cache
         fetchProducts(); // Refresh
       } else {
         toast.error(`Failed to execute bulk action: ${action}`);

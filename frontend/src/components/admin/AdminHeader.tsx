@@ -1,8 +1,12 @@
 "use client";
 
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 
-export default function AdminHeader() {
+interface AdminHeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
   const handleLogout = () => {
     // Expire the session cookie immediately
@@ -12,12 +16,22 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-[var(--border)] flex items-center justify-between px-6 shadow-sm">
-      <div className="font-semibold text-lg text-[var(--text-primary)]">
-        Dashboard
+    <header className="h-16 bg-white border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6 shadow-sm">
+      <div className="flex items-center gap-3">
+        {onMenuClick && (
+          <button 
+            onClick={onMenuClick}
+            className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <Menu size={24} />
+          </button>
+        )}
+        <div className="font-semibold text-lg text-[var(--text-primary)] hidden sm:block">
+          Dashboard
+        </div>
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[var(--primary)]">
             <User size={16} />
@@ -25,7 +39,7 @@ export default function AdminHeader() {
           <span className="hidden sm:inline">Admin User</span>
         </div>
         
-        <div className="h-6 w-px bg-gray-200 mx-2" />
+        <div className="h-6 w-px bg-gray-200 mx-1 sm:mx-2" />
         
         <button 
           onClick={handleLogout}
