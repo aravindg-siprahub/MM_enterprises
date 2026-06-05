@@ -170,21 +170,33 @@ def register_chat_user(data: ChatRegisterRequest, db: tuple = Depends(get_db)):
     try:
         # Check if email already exists
         cursor.execute("SELECT id FROM auth.users WHERE email = %s", (data.email,))
-        if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="User already exists")
+        existing_user = cursor.fetchone()
             
         hashed_password = pwd_context.hash(data.password)
-        new_id = str(uuid.uuid4())
         
-        cursor.execute(
-            """
-            INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, aud, role)
-            VALUES (%s, %s, %s, NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}', %s, 'authenticated', 'authenticated')
-            """,
-            (new_id, data.email, hashed_password, f'{{"full_name":"{data.full_name}"}}')
-        )
-        conn.commit()
-        return {"status": "success", "message": "User created successfully"}
+        if existing_user:
+            # If user exists (likely stuck in unconfirmed state from before), confirm them and update password
+            cursor.execute(
+                """
+                UPDATE auth.users 
+                SET encrypted_password = %s, email_confirmed_at = COALESCE(email_confirmed_at, NOW()), updated_at = NOW()
+                WHERE id = %s
+                """,
+                (hashed_password, existing_user['id'])
+            )
+            conn.commit()
+            return {"status": "success", "message": "User updated successfully"}
+        else:
+            new_id = str(uuid.uuid4())
+            cursor.execute(
+                """
+                INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, aud, role)
+                VALUES (%s, %s, %s, NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}', %s, 'authenticated', 'authenticated')
+                """,
+                (new_id, data.email, hashed_password, f'{{"full_name":"{data.full_name}"}}')
+            )
+            conn.commit()
+            return {"status": "success", "message": "User created successfully"}
     except Exception as e:
         if isinstance(e, HTTPException):
             raise
