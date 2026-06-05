@@ -11,3 +11,4 @@ passlib[bcrypt]
 python-multipart
 supabase
 filetype
+groq>=0.25.0
