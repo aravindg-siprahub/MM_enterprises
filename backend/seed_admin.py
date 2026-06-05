@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ADMIN_EMAIL    = "aravind.guggilla@gmail.com"
-ADMIN_PASSWORD = "admin@123"
+ADMIN_EMAIL    = "admin@123"
+ADMIN_PASSWORD = "12345678"
 ADMIN_NAME     = "Aravind Guggilla"
 
 DATABASE_URL = os.getenv("DATABASE_URL")
