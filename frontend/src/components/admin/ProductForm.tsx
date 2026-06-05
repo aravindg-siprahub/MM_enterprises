@@ -21,6 +21,7 @@ const productSchema = z.object({
   description: z.string().optional(),
   category_id: z.string().uuid("Please select a category"),
   brand_id: z.string().uuid("Please select a brand"),
+  custom_brand: z.string().optional(),
   original_price: z.number().min(0, "Price must be positive"),
   selling_price: z.number().min(0, "Price must be positive"),
   stock_qty: z.number().int().min(0, "Stock cannot be negative"),
