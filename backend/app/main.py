@@ -20,6 +20,7 @@ app = FastAPI(title="MM Enterprises Digital Commerce API")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://mm-enterprises-pearl.vercel.app",
     "https://mm-enterprises-git-main-aravindg-siprahubs-projects.vercel.app"
 ]
 
