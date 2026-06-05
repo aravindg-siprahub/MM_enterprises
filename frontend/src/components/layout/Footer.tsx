@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#2563EB] via-purple-500 to-[#10B981]"></div>
       
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-8 mb-16">
           
           {/* Brand & Newsletter */}
           <div className="lg:col-span-2">
@@ -78,8 +78,8 @@ export default function Footer() {
         </div>
         
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex gap-4 text-sm font-medium text-gray-500">
+        <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-gray-500">
             <a href="#" className="hover:text-[#2563EB] transition-colors">Facebook</a>
             <a href="#" className="hover:text-[#2563EB] transition-colors">Twitter</a>
             <a href="#" className="hover:text-[#2563EB] transition-colors">Instagram</a>

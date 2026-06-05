@@ -3,10 +3,12 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { getImageUrl } from '@/lib/imageUtils'
+import { useWishlist } from '@/context/WishlistContext'
 
 export default function ProductCard({ product }: { product: any }) {
   const router = useRouter()
   const [imgError, setImgError] = useState(false)
+  const { toggleWishlist, isWishlisted } = useWishlist()
 
   const imagesArray = product.product_images || product.images || []
   let primaryImage = imagesArray.find(
@@ -19,10 +21,31 @@ export default function ProductCard({ product }: { product: any }) {
     if (product?.slug) router.push(`/products/${product.slug}`)
   }
 
-  const sellingPrice = Number(product.selling_price) || 0
+  const activeDeal = product.deals?.find((d: any) => d.is_active !== false)
+  const sellingPrice = activeDeal ? Number(activeDeal.deal_price) : Number(product.selling_price) || 0
   const originalPrice = Number(product.original_price) || 0
-  const discount = Number(product.discount_percent) || 0
+  
+  let discount = Number(product.discount_percent) || 0
+  if (activeDeal && originalPrice > sellingPrice) {
+    discount = Math.round(((originalPrice - sellingPrice) / originalPrice) * 100)
+  }
+
   const rating = Number(product.rating) || 0
+
+  const wishlisted = isWishlisted(product.id)
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toggleWishlist({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      selling_price: sellingPrice,
+      original_price: originalPrice,
+      image_url: primaryImage || '',
+      discount_percent: discount
+    })
+  }
 
   return (
     <div onClick={handleClick}
@@ -31,29 +54,23 @@ export default function ProductCard({ product }: { product: any }) {
                     hover:shadow-xl transition-all duration-200
                     hover:-translate-y-0.5 overflow-hidden flex flex-col h-full">
 
-      {/* Discount badge */}
-      {discount > 0 && (
-        <div className="absolute top-1.5 left-1.5 z-10 bg-[#388e3c] 
-                        text-white text-[9px] sm:text-[10px] font-bold 
-                        px-1.5 py-0.5 rounded">
-          {discount}% OFF
-        </div>
-      )}
-
-      {/* Wishlist */}
-      <button onClick={e => e.stopPropagation()}
-              className="absolute top-1.5 right-1.5 z-10 
-                         opacity-0 group-hover:opacity-100 transition-opacity
-                         bg-white rounded-full p-1 shadow-md">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" 
-             stroke="currentColor" strokeWidth="2" className="text-gray-400">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-      </button>
+      {/* Deal / Discount badges */}
+      <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 pointer-events-none">
+        {activeDeal?.deal_type && (
+          <div className="bg-[#ff9f00] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded uppercase shadow-sm pointer-events-auto">
+            {activeDeal.deal_type.replace(/_/g, ' ')}
+          </div>
+        )}
+        {discount > 0 && !activeDeal?.deal_type && (
+          <div className="bg-[#388e3c] text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm pointer-events-auto">
+            {discount}% OFF
+          </div>
+        )}
+      </div>
 
       {/* Image */}
       <div className="relative bg-white flex items-center justify-center
-                      aspect-[4/3] p-3 sm:p-4 mb-2"
+                      aspect-[4/3] p-2 sm:p-4 mb-2"
            style={{ position: 'relative' }}>
         {primaryImage && !imgError ? (
           <Image
@@ -103,21 +120,32 @@ export default function ProductCard({ product }: { product: any }) {
         {rating <= 0 && <div className="mt-auto"></div>}
 
         {/* Price */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
-          <span className="text-sm sm:text-base font-bold text-[#212121]">
-            ₹{sellingPrice.toLocaleString('en-IN')}
-          </span>
-          <div className="flex items-center gap-1">
-            {originalPrice > sellingPrice && (
-              <span className="text-[10px] sm:text-xs text-[#878787] line-through">
-                ₹{originalPrice.toLocaleString('en-IN')}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 mt-auto">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base font-bold text-[#212121]">
+                ₹{sellingPrice.toLocaleString('en-IN')}
               </span>
-            )}
-            {discount > 0 && (
-              <span className="text-[10px] sm:text-xs text-[#388e3c] font-medium">
-                {discount}% off
-              </span>
-            )}
+              {originalPrice > sellingPrice && (
+                <span className="text-[10px] sm:text-xs text-[#878787] line-through">
+                  ₹{originalPrice.toLocaleString('en-IN')}
+                </span>
+              )}
+              {discount > 0 && (
+                <span className="text-[10px] sm:text-xs text-[#388e3c] font-medium">
+                  {discount}% off
+                </span>
+              )}
+            </div>
+            
+            <button onClick={handleWishlistClick}
+                    className={`p-1.5 transition-colors rounded-full shadow-sm border border-slate-100
+                               ${wishlisted ? 'bg-red-50 text-red-500' : 'bg-white text-gray-400 hover:bg-slate-50 hover:text-red-500'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} 
+                   stroke="currentColor" strokeWidth="2" className="transition-transform active:scale-90">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>

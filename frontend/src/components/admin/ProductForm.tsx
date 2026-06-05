@@ -63,6 +63,7 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
       description: initialData?.description || "",
       category_id: initialData?.category_id || "",
       brand_id: initialData?.brand_id || "",
+      custom_brand: "",
       original_price: initialData?.original_price || 0,
       selling_price: initialData?.selling_price || 0,
       stock_qty: initialData?.stock_qty || 0,
@@ -74,15 +75,37 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
     }
   });
 
-  const onSubmit = async (data: ProductFormData) => {
+  const onSubmit = async (data: ProductFormData & { custom_brand?: string }) => {
     setIsSubmitting(true);
     const token = document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
+
+    let finalBrandId = data.brand_id;
+    const selectedBrand = brands.find(b => b.id === data.brand_id);
+    
+    if (selectedBrand?.name === "Other" && data.custom_brand) {
+      try {
+        const brandSlug = data.custom_brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const brandRes = await fetch(`${API_BASE_URL}/api/admin/brands`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+          body: JSON.stringify({ name: data.custom_brand, slug: brandSlug, is_active: true })
+        });
+        if (!brandRes.ok) throw new Error("Failed to create custom brand");
+        const newBrand = await brandRes.json();
+        finalBrandId = newBrand.id;
+      } catch (err: any) {
+        toast.error(err.message || "Could not create custom brand");
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     const payload = {
 
       ...data,
+      brand_id: finalBrandId,
       // discount_percent is a PostgreSQL generated column — do NOT send it; the DB computes it automatically
-      tags: data.tags ? data.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+      tags: data.tags ? data.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
       images: images.map((img, idx) => ({
         image_url: img.path || img.url, // Prioritize path over url
         is_primary: img.is_primary,
@@ -233,7 +256,7 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
               <h3 className="font-semibold text-lg">Basic Information</h3>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                 <input {...form.register("name")} className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
@@ -261,7 +284,7 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
               <textarea {...form.register("description")} rows={4} className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select {...form.register("category_id")} className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -274,9 +297,24 @@ export default function ProductForm({ initialData, categories, brands }: Props) 
                 <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
                 <select {...form.register("brand_id")} className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                   <option value="">Select Brand</option>
-                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  {[...brands].sort((a, b) => {
+                    if (a.name === "Other") return 1;
+                    if (b.name === "Other") return -1;
+                    return a.name.localeCompare(b.name);
+                  }).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
                 {form.formState.errors.brand_id && <p className="text-red-500 text-xs mt-1">{form.formState.errors.brand_id.message}</p>}
+                
+                {brands.find(b => b.id === form.watch("brand_id"))?.name === "Other" && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Specify Custom Brand</label>
+                    <input 
+                      {...form.register("custom_brand")} 
+                      placeholder="e.g. Sony" 
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

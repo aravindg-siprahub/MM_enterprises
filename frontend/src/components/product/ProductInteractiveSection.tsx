@@ -48,7 +48,7 @@ export default function ProductInteractiveSection({ product, initialSellingPrice
     const selectedVariantId = selections[type];
     const variant = variantGroups[type]?.find(v => v.id === selectedVariantId);
     if (variant) {
-      if (variant.price_override !== null && variant.price_override !== undefined) {
+      if (variant.price_override != null && variant.price_override > 0) {
         currentPrice = variant.price_override;
         // If there's an override, we might not know the new original price. 
         // We'll assume the discount percent remains the same, or we just remove the original price.
@@ -83,7 +83,7 @@ export default function ProductInteractiveSection({ product, initialSellingPrice
                     <button
                       key={opt.id}
                       onClick={() => handleSelect(type, opt.id)}
-                      className={`px-4 py-2 text-sm rounded-lg border transition-all ${
+                      className={`px-3 py-1.5 sm:px-4 sm:py-2 text-[13px] sm:text-sm rounded-lg border transition-all ${
                         isSelected 
                           ? 'border-[#2874f0] text-[#2874f0] bg-blue-50 font-medium' 
                           : 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
@@ -100,17 +100,17 @@ export default function ProductInteractiveSection({ product, initialSellingPrice
       )}
 
       {/* Pricing Area */}
-      <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-200/60 shadow-sm">
-        <div className="flex flex-wrap items-baseline gap-3 mb-1">
-          <span className="text-3xl font-medium text-[#1d1d1f] tracking-tight">
+      <div className="mb-8 p-4 sm:p-6 bg-white rounded-2xl border border-gray-200/60 shadow-sm">
+        <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-1">
+          <span className="text-2xl sm:text-3xl font-medium text-[#1d1d1f] tracking-tight">
             ₹{currentPrice.toLocaleString('en-IN')}
           </span>
           {currentOriginal > currentPrice && (
             <>
-              <span className="text-lg text-gray-400 line-through font-medium">
+              <span className="text-base sm:text-lg text-gray-400 line-through font-medium">
                 ₹{currentOriginal.toLocaleString('en-IN')}
               </span>
-              <span className="text-sm font-semibold text-[#0066cc] bg-[#0066cc]/10 px-2 py-0.5 rounded-md">
+              <span className="text-xs sm:text-sm font-semibold text-[#0066cc] bg-[#0066cc]/10 px-2 py-0.5 rounded-md">
                 Save {currentDiscount}%
               </span>
             </>
@@ -119,7 +119,7 @@ export default function ProductInteractiveSection({ product, initialSellingPrice
         <p className="text-[13px] text-gray-500 font-medium">MRP incl. of all taxes. Free shipping applied.</p>
       </div>
 
-      <ProductActions productName={product.name} />
+      <ProductActions product={product} />
     </>
   );
 }

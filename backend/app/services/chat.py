@@ -66,7 +66,7 @@ def get_admin_conversations(cursor: RealDictCursor, limit: int = 50, offset: int
         FROM conversations c
         JOIN products p ON c.product_id = p.id
         LEFT JOIN auth.users u ON c.user_id = u.id
-        WHERE 1=1
+        WHERE EXISTS (SELECT 1 FROM messages m WHERE m.conversation_id = c.id)
     """
     params = []
     

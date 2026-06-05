@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, User, Heart, Menu, X } from 'lucide-react';
+import { Search, User, Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Assuming button gets added
 import SmartSearch from '@/components/ui/SmartSearch';
 import NotificationBell from '@/components/ui/NotificationBell';
+import { useWishlist } from '@/context/WishlistContext';
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { wishlistCount } = useWishlist();
 
   return (
     <nav className="sticky top-0 z-50 w-full glass-nav bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,17 +25,20 @@ export default function Navbar() {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-black">
+              <img src="/logo.png" alt="MM Enterprises" className="w-full h-full object-contain" />
             </div>
-            <span className="text-xl font-bold hidden sm:block tracking-tight">Enterprises</span>
+            <span className="text-2xl font-bold hidden sm:block tracking-tight text-slate-800">
+              Enterprises
+            </span>
           </Link>
         </div>
 
         {/* Center: Desktop Navigation & Search */}
-        <div className="hidden md:flex items-center gap-6 flex-1 max-w-2xl px-8">
-          <div className="flex items-center gap-6 text-sm font-medium text-muted-foreground">
+        <div className="hidden md:flex items-center gap-4 lg:gap-6 flex-1 max-w-3xl px-4 lg:px-8">
+          <div className="flex items-center gap-4 lg:gap-6 text-sm font-medium text-muted-foreground whitespace-nowrap">
+            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
             <Link href="/mobiles" className="hover:text-primary transition-colors">Mobiles</Link>
             <Link href="/appliances" className="hover:text-primary transition-colors">Appliances</Link>
             <Link href="/furniture" className="hover:text-primary transition-colors">Furniture</Link>
@@ -51,15 +56,13 @@ export default function Navbar() {
             <Search className="w-5 h-5" />
           </button>
           
-          <Link href="/wishlist" className="p-2 text-foreground/80 hover:text-primary hidden sm:block">
+          <Link href="/wishlist" className="relative p-2 text-foreground/80 hover:text-primary hidden sm:block">
             <Heart className="w-5 h-5" />
-          </Link>
-          
-          <Link href="/cart" className="relative p-2 text-foreground/80 hover:text-primary">
-            <ShoppingBag className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-              0
-            </span>
+            {wishlistCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           <NotificationBell />
@@ -80,6 +83,13 @@ export default function Navbar() {
             <div className="w-full pb-2 mb-2 border-b border-border">
               <SmartSearch />
             </div>
+            <Link 
+              href="/" 
+              className="text-lg font-medium hover:text-primary"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
             <Link 
               href="/mobiles" 
               className="text-lg font-medium hover:text-primary"
@@ -107,7 +117,13 @@ export default function Navbar() {
                 className="flex items-center gap-3 text-lg font-medium hover:text-primary"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <Heart className="w-5 h-5" /> Wishlist
+                <Heart className="w-5 h-5" /> 
+                <span>Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
               <Link 
                 href="/admin" 

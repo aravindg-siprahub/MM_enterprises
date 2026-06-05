@@ -46,33 +46,33 @@ export default function FilterSidebar() {
   };
 
   return (
-    <div style={{ width: "250px", flexShrink: 0 }}>
-      <div className="glass-card" style={{ padding: "24px", position: "sticky", top: "100px" }}>
+    <div className="w-full md:w-[250px] shrink-0">
+      <div className="glass-card p-6 md:sticky top-[100px]">
         
         {/* Category Filter */}
-        <div style={{ marginBottom: "32px" }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", color: "#f0f4ff", marginBottom: "16px", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>
+        <div className="mb-8">
+          <h3 className="font-poppins text-lg font-semibold text-slate-900 mb-4 pb-2 border-b border-slate-100">
             Categories
           </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "var(--text-secondary)" }}>
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-primary transition-colors">
               <input 
                 type="radio" 
                 name="category" 
                 checked={currentCategory === ""}
                 onChange={() => updateFilters("category", "")}
-                style={{ accentColor: "var(--gold-500)" }}
+                className="accent-primary w-4 h-4"
               />
               All Categories
             </label>
             {categories.map(cat => (
-              <label key={cat.slug} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "var(--text-secondary)" }}>
+              <label key={cat.slug} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-primary transition-colors">
                 <input 
                   type="radio" 
                   name="category" 
                   checked={currentCategory === cat.slug}
                   onChange={() => updateFilters("category", cat.slug)}
-                  style={{ accentColor: "var(--gold-500)" }}
+                  className="accent-primary w-4 h-4"
                 />
                 {cat.name}
               </label>
@@ -82,28 +82,28 @@ export default function FilterSidebar() {
 
         {/* Brand Filter */}
         <div>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", color: "#f0f4ff", marginBottom: "16px", borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>
+          <h3 className="font-poppins text-lg font-semibold text-slate-900 mb-4 pb-2 border-b border-slate-100">
             Brands
           </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "var(--text-secondary)" }}>
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-primary transition-colors">
               <input 
                 type="radio" 
                 name="brand" 
                 checked={currentBrand === ""}
                 onChange={() => updateFilters("brand", "")}
-                style={{ accentColor: "var(--gold-500)" }}
+                className="accent-primary w-4 h-4"
               />
               All Brands
             </label>
             {brands.map(brand => (
-              <label key={brand.name} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "var(--text-secondary)" }}>
+              <label key={brand.name} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-primary transition-colors">
                 <input 
                   type="radio" 
                   name="brand" 
                   checked={currentBrand === brand.name}
                   onChange={() => updateFilters("brand", brand.name)}
-                  style={{ accentColor: "var(--gold-500)" }}
+                  className="accent-primary w-4 h-4"
                 />
                 {brand.name}
               </label>

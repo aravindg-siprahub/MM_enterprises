@@ -5,7 +5,6 @@ import ProductGrid from "@/components/ProductGrid";
 import BrandSpotlight from "@/components/home/BrandSpotlight";
 import MidBanner from "@/components/home/MidBanner";
 import AnimatedSection from "@/components/ui/AnimatedSection";
-import Newsletter from "@/components/home/Newsletter";
 
 export default async function Home() {
   const data = await getHomepage();
@@ -126,8 +125,7 @@ export default async function Home() {
 
       </div>
       
-      {/* Newsletter Section */}
-      <Newsletter />
+
 
     </main>
   );

@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import CategoryPills from "@/components/home/CategoryPills";
 import AuthModal from "@/components/ui/AuthModal";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 export default function StoreShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,12 +17,12 @@ export default function StoreShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <>
+    <WishlistProvider>
       <Navbar />
       <CategoryPills />
       <main className="flex-grow">{children}</main>
       <Footer />
       <AuthModal />
-    </>
+    </WishlistProvider>
   );
 }

@@ -5,6 +5,7 @@ import { Package, Tags, ImageIcon, Zap, Plus, ExternalLink, MessageSquare, User,
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/config";
 import { formatDistanceToNow } from "date-fns";
+import { getImageUrl } from "@/lib/imageUtils";
 
 interface DashboardStats {
   total_products: number;
@@ -89,7 +90,7 @@ function RecentInquiries() {
                 {/* Product Thumbnail */}
                 {inq.product_image ? (
                   <img
-                    src={inq.product_image}
+                    src={getImageUrl(inq.product_image, "products")}
                     alt={inq.product_name ?? "Product"}
                     className="w-11 h-11 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0"
                   />

@@ -57,7 +57,7 @@ export default function ProductSlider({ title, subtitle, products, viewAllLink }
           className="w-full pb-4"
         >
           {products.map((product, index) => (
-            <SwiperSlide key={product.id || index} className="h-auto">
+            <SwiperSlide key={`${product.id}-${index}`} className="h-auto">
               <ProductCard product={product} index={index} />
             </SwiperSlide>
           ))}

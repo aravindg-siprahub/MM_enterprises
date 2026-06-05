@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { MessageSquare, Loader2, Send, ChevronRight, Package, User, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 import { format } from 'date-fns';
+import { getImageUrl } from '@/lib/imageUtils';
 
 const getAdminToken = () =>
   document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1] ?? '';
@@ -152,7 +153,7 @@ export default function AdminMessages() {
                     </div>
                     <div className="flex items-center gap-3 mt-1.5 w-full">
                       {conv.product_image ? (
-                        <img src={conv.product_image} alt={conv.product_name} className="w-8 h-8 object-cover rounded shadow-sm shrink-0" />
+                        <img src={getImageUrl(conv.product_image, "products")} alt={conv.product_name} className="w-8 h-8 object-cover rounded shadow-sm shrink-0" />
                       ) : (
                         <div className="w-8 h-8 bg-slate-100 flex items-center justify-center rounded shrink-0">
                           <Package className="w-4 h-4 text-slate-400" />
@@ -193,7 +194,7 @@ export default function AdminMessages() {
                   <ArrowLeft size={20} />
                 </button>
                 {selectedConv?.product_image ? (
-                  <img src={selectedConv.product_image} alt="Product" className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" />
+                  <img src={getImageUrl(selectedConv.product_image, "products")} alt="Product" className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" />
                 ) : (
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200 shrink-0">
                     <Package className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { API_BASE_URL } from "@/lib/config";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 type Tab = "signin" | "register";
 
@@ -104,6 +106,7 @@ export default function AdminLogin() {
         }
 
         .login-card {
+          position: relative;
           background: #ffffff;
           border-radius: 20px;
           padding: 2.5rem 2.25rem;
@@ -383,13 +386,36 @@ export default function AdminLogin() {
           align-items: flex-start;
           gap: 0.4rem;
         }
+
+        /* Back Button */
+        .login-back {
+          position: absolute;
+          top: 1.5rem;
+          left: 1.5rem;
+          z-index: 10;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #6b7280;
+          font-weight: 600;
+          font-size: 0.875rem;
+          text-decoration: none;
+          transition: color 0.15s ease;
+        }
+        .login-back:hover {
+          color: #111827;
+        }
       `}</style>
 
       <div className="login-page">
         <div className="login-card">
+          <Link href="/" className="login-back">
+            <ArrowLeft size={18} />
+            <span className="hidden sm:inline">Back to Store</span>
+          </Link>
 
           {/* Brand */}
-          <div className="login-brand">
+          <div className="login-brand mt-4">
             <div className="login-brand-mark">M</div>
             <div className="login-brand-title">MM <span>Enterprises</span></div>
             <div className="login-brand-sub">Admin Portal</div>

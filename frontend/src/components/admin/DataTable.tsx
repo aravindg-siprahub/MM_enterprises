@@ -42,12 +42,12 @@ export default function DataTable({ columns, data, onEdit, onDelete, searchPlace
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-[var(--border)] overflow-hidden">
-      <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-gray-50/50">
-        <div className="relative">
+      <div className="p-4 border-b border-[var(--border)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
+        <div className="relative w-full sm:w-auto">
           <input
             type="text"
             placeholder={searchPlaceholder}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
