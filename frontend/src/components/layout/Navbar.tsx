@@ -56,7 +56,7 @@ export default function Navbar() {
             <Search className="w-5 h-5" />
           </button>
           
-          <Link href="/wishlist" className="relative p-2 text-foreground/80 hover:text-primary hidden sm:block">
+          <Link href="/wishlist" className="relative p-2 text-foreground/80 hover:text-primary">
             <Heart className="w-5 h-5" />
             {wishlistCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">

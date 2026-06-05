@@ -120,9 +120,9 @@ export default function ProductCard({ product }: { product: any }) {
         {rating <= 0 && <div className="mt-auto"></div>}
 
         {/* Price */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 mt-auto">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5">
+        <div className="flex sm:items-center mt-auto w-full">
+          <div className="flex items-end justify-between w-full gap-1">
+            <div className="flex flex-wrap items-baseline gap-x-1 sm:gap-x-1.5 gap-y-0.5 min-w-0">
               <span className="text-sm sm:text-base font-bold text-[#212121]">
                 ₹{sellingPrice.toLocaleString('en-IN')}
               </span>
@@ -132,14 +132,14 @@ export default function ProductCard({ product }: { product: any }) {
                 </span>
               )}
               {discount > 0 && (
-                <span className="text-[10px] sm:text-xs text-[#388e3c] font-medium">
+                <span className="text-[10px] sm:text-xs text-[#388e3c] font-medium whitespace-nowrap">
                   {discount}% off
                 </span>
               )}
             </div>
             
             <button onClick={handleWishlistClick}
-                    className={`p-1.5 transition-colors rounded-full shadow-sm border border-slate-100
+                    className={`shrink-0 p-1.5 transition-colors rounded-full shadow-sm border border-slate-100
                                ${wishlisted ? 'bg-red-50 text-red-500' : 'bg-white text-gray-400 hover:bg-slate-50 hover:text-red-500'}`}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} 
                    stroke="currentColor" strokeWidth="2" className="transition-transform active:scale-90">
