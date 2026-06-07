@@ -1,12 +1,17 @@
 import { Metadata } from 'next'
-import { getProductBySlug, getAiRecommendations } from '@/lib/api'
+import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
+import { getProductBySlug } from '@/lib/api'
 import ImageGallery from '@/components/product/ImageGallery'
-import ProductSlider from '@/components/home/ProductSlider'
 import AnimatedSection from '@/components/ui/AnimatedSection'
 import ProductInteractiveSection from '@/components/product/ProductInteractiveSection'
-import ChatModal from '@/components/product/ChatModal'
 import ProductHighlights from '@/components/product/ProductHighlights'
+import ProductRecommendations from '@/components/product/ProductRecommendations'
 import { Star, ShieldCheck, Truck, Shield, HeadphonesIcon } from 'lucide-react'
+
+const ChatModal = dynamic(() => import('@/components/product/ChatModal'), {
+  loading: () => <div className="h-14 w-full bg-slate-100 rounded-xl animate-pulse mt-4"></div>
+})
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -25,8 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const resolvedParams = await params;
+  console.log("=== INSIDE PRODUCT PAGE ===", resolvedParams.slug);
   const product = await getProductBySlug(resolvedParams.slug)
-  const recommendations = await getAiRecommendations(resolvedParams.slug)
 
   if (!product) {
     return (
@@ -164,17 +169,18 @@ export default async function ProductPage({ params }: Props) {
         </div>
 
         {/* AI Recommendations Section */}
-        {recommendations && recommendations.length > 0 && (
+        <Suspense fallback={
           <div className="mt-20 border-t border-slate-200 pt-16">
-            <AnimatedSection>
-              <ProductSlider 
-                title="Recommended For You" 
-                subtitle="Smart suggestions based on your interests powered by AI"
-                products={recommendations} 
-              />
-            </AnimatedSection>
+            <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8"></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-80 bg-slate-100 rounded-2xl animate-pulse"></div>
+              ))}
+            </div>
           </div>
-        )}
+        }>
+          <ProductRecommendations slug={resolvedParams.slug} />
+        </Suspense>
       </div>
     </main>
   )

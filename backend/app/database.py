@@ -18,16 +18,40 @@ db_pool = SimpleConnectionPool(
     dsn=clean_url
 )
 
+class TimingCursorWrapper:
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def execute(self, query, vars=None):
+        import time
+        start = time.time()
+        try:
+            return self._cursor.execute(query, vars)
+        finally:
+            end = time.time()
+            duration_ms = (end - start) * 1000
+            query_preview = " ".join(query.replace("\\n", " ").split())[:150]
+            print(f"[TIMING - DB QUERY] {duration_ms:.2f}ms - {query_preview}")
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
 
 def get_db():
+    import time
+    t0 = time.time()
     retries = 3
     conn = None
     for _ in range(retries):
         try:
+            t1 = time.time()
             conn = db_pool.getconn()
+            t2 = time.time()
+            # print(f"getconn took {t2-t1:.4f}s")
             # Test if the connection is still alive
             with conn.cursor() as c:
                 c.execute("SELECT 1")
+            t3 = time.time()
+            # print(f"SELECT 1 took {t3-t2:.4f}s")
             break  # Connection is good
         except psycopg2.OperationalError:
             # Server closed the connection or it timed out
@@ -41,7 +65,7 @@ def get_db():
     try:
         # Use RealDictCursor to return rows as dictionaries
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            yield conn, cursor
+            yield conn, TimingCursorWrapper(cursor)
             conn.commit()
     except Exception:
         conn.rollback()

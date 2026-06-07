@@ -33,7 +33,7 @@ export default async function ProductGrid({
       if (search) url.searchParams.append('search', search);
 
       // Fetch data from FastAPI backend
-      const res = await fetch(url.toString(), { cache: 'no-store' });
+      const res = await fetch(url.toString(), { next: { revalidate: 60 } });
       if (res.ok) {
         const jsonRes = await res.json();
         products = Array.isArray(jsonRes) ? jsonRes : (jsonRes.data || []);

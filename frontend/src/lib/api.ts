@@ -1,12 +1,12 @@
 import { HomepageData } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+import { API_BASE_URL } from "./config";
 
 export async function getHomepage() {
   try {
     const res = await fetch(
       `${API_BASE_URL}/api/homepage`,
-      { next: { revalidate: 30 } }
+      { next: { revalidate: 60 } }
     )
     if (!res.ok) {
       console.error('Homepage API failed:', res.status)
@@ -60,15 +60,27 @@ export async function getCategoryBanners(placement: string) {
   return res.json()
 }
 
+export async function getCategoryBrands(categorySlug: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/brands?category=${categorySlug}`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching category brands:", error);
+    return [];
+  }
+}
+
 export async function getProductBySlug(slug: string) {
   try {
-    const res = await fetch(
-      `${API_BASE_URL}/api/products/${slug}`,
-      { next: { revalidate: 60 } }
-    )
+    const url = `${API_BASE_URL}/api/products/${slug}`;
+    console.log("Fetching product:", url);
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    console.log("Product fetch status:", res.status);
     if (!res.ok) return null
     return res.json()
   } catch (e) {
+    console.error("Product fetch error:", e)
     return null
   }
 }

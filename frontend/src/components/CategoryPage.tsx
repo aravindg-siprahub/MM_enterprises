@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Filter, X, SlidersHorizontal } from "lucide-react";
 import ProductCard from "./product/ProductCard";
 
@@ -9,6 +9,9 @@ interface Props {
   categorySlug: string;
   title?: string;
   bannerPlacement?: string;
+  initialProducts?: any[];
+  initialTotal?: number;
+  initialBrands?: string[];
 }
 
 const PRICE_RANGES = [
@@ -162,29 +165,32 @@ function FilterContent({
 }
 
 /* ─── Main Component ─────────────────────────────────────── */
-export default function CategoryPage({ categorySlug, title }: Props) {
-  const [products, setProducts]           = useState<any[]>([]);
-  const [brands, setBrands]               = useState<string[]>([]);
+export default function CategoryPage({ categorySlug, title, initialProducts = [], initialTotal = 0, initialBrands = [] }: Props) {
+  const [products, setProducts]           = useState<any[]>(initialProducts);
+  const [brands, setBrands]               = useState<string[]>(initialBrands);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [selectedDiscounts, setSelectedDiscounts] = useState<string[]>([]);
   const [sortBy, setSortBy]               = useState("relevance");
   const [page, setPage]                   = useState(1);
-  const [total, setTotal]                 = useState(0);
-  const [loading, setLoading]             = useState(true);
+  const [total, setTotal]                 = useState(initialTotal);
+  const [loading, setLoading]             = useState(initialProducts.length === 0);
   const [loadingMore, setLoadingMore]     = useState(false);
-  const [hasMore, setHasMore]             = useState(false);
+  const [hasMore, setHasMore]             = useState(initialProducts.length > 0 ? PAGE_SIZE < initialTotal : false);
   const [drawerOpen, setDrawerOpen]       = useState(false);
+  
+  const isInitialMount = useRef(true);
 
   const displayTitle = title || categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
 
   /* ── Fetch brands once for this category ─────────────── */
   useEffect(() => {
+    if (initialBrands.length > 0) return;
     fetch(`${API_BASE}/api/brands?category=${categorySlug}`)
       .then(res => res.json())
       .then(data => setBrands(data.map((b: any) => b.name)))
       .catch(console.error);
-  }, [categorySlug]);
+  }, [categorySlug, initialBrands]);
 
   /* ── Fetch products ────────────────────────────────────── */
   const fetchProducts = useCallback(
@@ -247,8 +253,12 @@ export default function CategoryPage({ categorySlug, title }: Props) {
 
   /* Reset + refetch when filters/sort change */
   useEffect(() => {
+    if (isInitialMount.current && initialProducts.length > 0) {
+      isInitialMount.current = false;
+      return;
+    }
     fetchProducts(1, false);
-  }, [fetchProducts]);
+  }, [fetchProducts, initialProducts]);
 
   /* ── Helpers ───────────────────────────────────────────── */
   const toggleBrand = (b: string) => {

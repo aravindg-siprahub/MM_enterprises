@@ -1,10 +1,11 @@
 import { getHomepage } from "@/lib/api";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import ProductSlider from "@/components/home/ProductSlider";
-import ProductGrid from "@/components/ProductGrid";
 import BrandSpotlight from "@/components/home/BrandSpotlight";
 import MidBanner from "@/components/home/MidBanner";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+
+export const revalidate = 60;
 
 export default async function Home() {
   const data = await getHomepage();
@@ -27,14 +28,9 @@ export default async function Home() {
     ends_at: d.ends_at
   })) || [];
 
-  const grabOrGoneProducts = data.grab_or_gone?.map((d: any) => ({
-    ...d.products,
-    price: d.deal_price,
-    original_price: d.products?.original_price,
-    discount_percentage: Math.round(((d.products?.original_price - d.deal_price) / d.products?.original_price) * 100),
-    deal_type: d.deal_type,
-    ends_at: d.ends_at
-  })) || [];
+  const latestMobiles = data.latest_mobiles || [];
+  console.log("HOMEPAGE DATA LATEST MOBILES TYPE:", typeof data.latest_mobiles);
+  console.log("HOMEPAGE DATA LATEST MOBILES LENGTH:", data.latest_mobiles?.length);
 
   return (
     <main className="bg-background min-h-screen pb-16">
@@ -49,25 +45,15 @@ export default async function Home() {
       {/* Main Content Container */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 space-y-10 sm:space-y-16">
         
-        {/* For You / Top Deals - Horizontal Slider */}
-        {topDealsProducts.length > 0 && (
-          <AnimatedSection>
-            <ProductSlider 
-              title="Personalized For You" 
-              subtitle="Recommended products based on your trends"
-              products={topDealsProducts} 
-              viewAllLink="/deals"
-            />
-          </AnimatedSection>
-        )}
 
-        {/* Grab Or Gone / Trending Mobiles */}
-        {grabOrGoneProducts.length > 0 && (
+
+        {/* Trending Mobiles (Latest Added) */}
+        {latestMobiles.length > 0 && (
           <AnimatedSection>
             <ProductSlider 
               title="Trending Mobiles" 
-              subtitle="Grab these limited time offers before they're gone"
-              products={grabOrGoneProducts} 
+              subtitle="Check out the latest arrivals"
+              products={latestMobiles} 
               viewAllLink="/mobiles"
             />
           </AnimatedSection>
@@ -82,15 +68,14 @@ export default async function Home() {
           </AnimatedSection>
         )}
 
-        {/* Smart Appliances Grid */}
+        {/* Smart Appliances Slider */}
         {data.appliances_featured?.length > 0 && (
           <AnimatedSection>
-            <ProductGrid 
+            <ProductSlider 
               title="Smart Home Appliances"
               subtitle="Upgrade your home with next-gen technology"
-              staticProducts={data.appliances_featured}
+              products={data.appliances_featured}
               viewAllLink="/appliances"
-              featured={true}
             />
           </AnimatedSection>
         )}
@@ -111,13 +96,13 @@ export default async function Home() {
           </AnimatedSection>
         )}
 
-        {/* Premium Furniture Grid */}
+        {/* Premium Furniture Slider */}
         {data.furniture_featured?.length > 0 && (
           <AnimatedSection>
-            <ProductGrid 
+            <ProductSlider 
               title="Premium Furniture"
               subtitle="Transform your living spaces with luxury collections"
-              staticProducts={data.furniture_featured}
+              products={data.furniture_featured}
               viewAllLink="/furniture"
             />
           </AnimatedSection>
@@ -125,8 +110,6 @@ export default async function Home() {
 
       </div>
       
-
-
     </main>
   );
 }

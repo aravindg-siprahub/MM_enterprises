@@ -1,32 +1,20 @@
-import psycopg2
-import os
-import urllib.parse
-from dotenv import load_dotenv
-
-load_dotenv()
-db = os.getenv('DATABASE_URL')
-p = urllib.parse.urlparse(db)
-c = psycopg2.connect(urllib.parse.urlunparse(p._replace(query='')))
-c.autocommit = True  # Required for CREATE INDEX CONCURRENTLY
-cur = c.cursor()
-
-indexes = [
-    "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);",
-    "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_deals_product_id ON deals(product_id);"
-]
-
-for idx in indexes:
-    try:
-        cur.execute(idx)
-        print(f"Successfully executed: {idx}")
-    except Exception as e:
-        print(f"Error on {idx}: {e}")
-
+import sys
+sys.path.append('c:\\Users\\Aravind\\Desktop\\MM_enterprises\\backend')
+from app.database import db_pool
+conn = db_pool.getconn()
 try:
-    cur.execute("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);")
-    print("Successfully executed reviews index")
-except Exception as e:
-    print(f"Error on reviews index (table might not exist): {e}")
-
-cur.close()
-c.close()
+    with conn.cursor() as cur:
+        # created_at
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at DESC);")
+        # category (already had idx_products_category_id but creating specifically on slug in categories is good)
+        # However categories_slug_key is already unique.
+        
+        # We query products where category_id = ... and is_active = true and ...
+        # Let's add a composite index on category_id and created_at
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_products_category_created ON products(category_id, created_at DESC);")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_products_brand_created ON products(brand_id, created_at DESC);")
+        
+    conn.commit()
+    print("Indexes added successfully.")
+finally:
+    db_pool.putconn(conn)

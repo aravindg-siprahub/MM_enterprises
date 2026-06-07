@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Heart, ShoppingCart, Star, Eye } from 'lucide-react'
 import { getImageUrl } from '@/lib/imageUtils'
 import { useWishlist } from '@/context/WishlistContext'
@@ -30,7 +30,6 @@ export interface Product {
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop';
 
 export default function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
-  const [isHovered, setIsHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
   const { toggleWishlist, isWishlisted } = useWishlist();
 
@@ -79,8 +78,6 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className="group bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col h-full relative p-3 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     >
       {/* Badges */}
@@ -98,29 +95,20 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
       </div>
 
       {/* Quick Actions (Slide in on hover) */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 pointer-events-none">
-        <AnimatePresence>
-          {isHovered && (
-            <motion.button
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="p-2 bg-background/80 hover:bg-background backdrop-blur-md rounded-full shadow-sm text-muted-foreground hover:text-primary transition-colors hidden sm:block pointer-events-auto"
-            >
-              <Eye className="w-4 h-4" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 pointer-events-none overflow-hidden p-1 -m-1">
+        <button
+          className="p-2 bg-background/80 hover:bg-background backdrop-blur-md rounded-full shadow-sm text-muted-foreground hover:text-primary transition-all duration-300 hidden sm:block pointer-events-auto opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
       </div>
 
 
 
       {/* Image Area */}
       <Link href={`/products/${product.slug || product.id}`} className="relative h-[220px] sm:h-[260px] w-full rounded-2xl bg-slate-50 flex items-center justify-center overflow-hidden mb-4 group-hover:bg-slate-100 transition-colors">
-        <motion.div 
-          animate={{ scale: isHovered ? 1.05 : 1 }}
-          transition={{ duration: 0.4 }}
-          className="relative w-full h-full p-1"
+        <div 
+          className="relative w-full h-full p-1 transition-transform duration-500 ease-out group-hover:scale-105"
         >
           <Image
             src={primaryImage}
@@ -130,9 +118,8 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-contain mix-blend-multiply transition-opacity duration-500"
             onError={handleImgError}
-            unoptimized={primaryImage.includes('supabase.co')}
           />
-        </motion.div>
+        </div>
       </Link>
 
       {/* Content */}
@@ -164,22 +151,18 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
           </div>
           
           <div className="flex items-center gap-2">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button 
               onClick={handleWishlistClick}
-              className={`p-2.5 rounded-full transition-colors border shadow-sm ${wishlisted ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-50'}`}
+              className={`p-2.5 rounded-full transition-all border shadow-sm hover:scale-105 active:scale-95 ${wishlisted ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-50'}`}
             >
               <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500' : ''}`} />
-            </motion.button>
+            </button>
 
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground p-2.5 rounded-full transition-colors"
+            <button 
+              className="bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground p-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
             >
               <ShoppingCart className="w-4 h-4" />
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>
