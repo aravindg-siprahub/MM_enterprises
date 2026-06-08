@@ -21,7 +21,9 @@ origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://mm-enterprises-pearl.vercel.app",
-    "https://mm-enterprises-git-main-aravindg-siprahubs-projects.vercel.app"
+    "https://mm-enterprises-git-main-aravindg-siprahubs-projects.vercel.app",
+    "https://www.mmenterprises.store",
+    "https://mmenterprises.store"
 ]
 
 app.add_middleware(
