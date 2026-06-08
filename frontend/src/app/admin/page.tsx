@@ -218,7 +218,7 @@ export default function AdminDashboard() {
           Dashboard Overview
         </h1>
         <a
-          href="http://localhost:3000"
+          href="/"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-[var(--primary)] hover:bg-[var(--secondary)] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm min-h-[44px]"
