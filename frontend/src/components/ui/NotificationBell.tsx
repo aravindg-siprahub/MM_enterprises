@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { MessageCircle, X, Bell, ChevronRight, Package } from 'lucide-react';
+import { getImageUrl } from '@/lib/imageUtils';
 
 interface Conversation {
   id: string;
@@ -172,7 +173,7 @@ export default function NotificationBell() {
                       {/* Product image */}
                       {conv.product_image ? (
                         <img
-                          src={conv.product_image}
+                          src={getImageUrl(conv.product_image, "products")}
                           alt={conv.product_name}
                           className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
                         />
@@ -222,7 +223,7 @@ export default function NotificationBell() {
             {/* Product thumb */}
             {toast.productImage ? (
               <img
-                src={toast.productImage}
+                src={getImageUrl(toast.productImage, "products")}
                 alt={toast.productName}
                 className="w-10 h-10 rounded-lg object-cover border border-slate-700 shrink-0 mt-0.5"
               />
