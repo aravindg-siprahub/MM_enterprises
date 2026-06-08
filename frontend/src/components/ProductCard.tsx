@@ -4,9 +4,10 @@ import React, { useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Heart, ShoppingCart, Star, Eye } from 'lucide-react'
+import { Heart, ShoppingCart, Star, Eye, MessageCircle } from 'lucide-react'
 import { getImageUrl } from '@/lib/imageUtils'
 import { useWishlist } from '@/context/WishlistContext'
+import ContactModal from './product/ContactModal'
 
 export interface Product {
   id: string;
@@ -31,6 +32,7 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1505740420928-5e560c06
 
 export default function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const [imgError, setImgError] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   const handleImgError = useCallback(() => setImgError(true), []);
@@ -138,34 +140,50 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
           </h3>
         </Link>
         
-        <div className="mt-auto pt-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-xl tracking-tight font-extrabold text-slate-900">
-              ₹{displayPrice.toLocaleString('en-IN')}
-            </span>
-            {displayOriginalPrice > displayPrice && (
-              <span className="text-[11px] text-muted-foreground line-through">
-                ₹{displayOriginalPrice.toLocaleString('en-IN')}
+        <div className="mt-auto pt-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xl tracking-tight font-extrabold text-slate-900">
+                ₹{displayPrice.toLocaleString('en-IN')}
               </span>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
+              {displayOriginalPrice > displayPrice && (
+                <span className="text-[11px] text-muted-foreground line-through">
+                  ₹{displayOriginalPrice.toLocaleString('en-IN')}
+                </span>
+              )}
+            </div>
+            
             <button 
               onClick={handleWishlistClick}
               className={`p-2.5 rounded-full transition-all border shadow-sm hover:scale-105 active:scale-95 ${wishlisted ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-slate-100 text-slate-400 hover:text-red-500 hover:bg-slate-50'}`}
             >
               <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500' : ''}`} />
             </button>
-
+          </div>
+          
+          <div className="flex gap-2 w-full">
             <button 
-              className="bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground p-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
+              onClick={(e) => { e.preventDefault(); window.location.href = `/products/${product.slug || product.id}#chat`; }}
+              className="flex-1 bg-slate-100/80 hover:bg-slate-200 text-slate-900 text-[11px] sm:text-xs font-semibold py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Chat With Seller
+            </button>
+            <button 
+              onClick={(e) => { e.preventDefault(); setIsContactModalOpen(true); }}
+              className="flex-[0.8] bg-[#1d1d1f] hover:bg-black text-white text-[11px] sm:text-xs font-semibold py-2.5 rounded-xl transition-colors shadow-md"
+            >
+              Buy Now
             </button>
           </div>
         </div>
       </div>
+
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+        productName={displayTitle} 
+      />
     </motion.div>
   )
 }
