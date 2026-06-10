@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, User, Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Assuming button gets added
 import SmartSearch from '@/components/ui/SmartSearch';
@@ -25,13 +26,15 @@ export default function Navbar() {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center bg-black">
-              <img src="/logo.png" alt="MM Enterprises" className="w-full h-full object-contain" />
-            </div>
-            <span className="text-2xl font-bold hidden sm:block tracking-tight text-slate-800">
-              Enterprises
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image 
+              src="/logo.png" 
+              alt="MM Enterprises Logo" 
+              width={220} 
+              height={55} 
+              className="h-10 md:h-12 w-auto object-contain"
+              priority
+            />
           </Link>
         </div>
 

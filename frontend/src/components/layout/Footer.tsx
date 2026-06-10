@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Send } from 'lucide-react'
 
 export default function Footer() {
@@ -13,10 +14,13 @@ export default function Footer() {
           {/* Brand & Newsletter */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-6 group">
-              <span className="premium-gradient-text font-black text-3xl tracking-tight transition-transform group-hover:scale-105 inline-block">MM</span>
-              <span className="text-gray-500 text-xs tracking-[0.2em] font-medium uppercase block mt-1">
-                Enterprises
-              </span>
+              <Image 
+                src="/logo.png" 
+                alt="MM Enterprises Logo" 
+                width={180} 
+                height={45} 
+                className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+              />
             </Link>
             <p className="text-gray-500 text-sm leading-relaxed mb-8 max-w-sm">
               Your premium destination for the latest smartphones, smart appliances, and luxury furniture. Experience shopping redefined.
